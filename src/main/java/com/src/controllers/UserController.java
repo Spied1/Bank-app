@@ -1,17 +1,14 @@
 package com.src.controllers;
 
 import com.src.components.UserDetailsImpl;
-import com.src.models.DTO.UserRegistrationDTO;
-import com.src.models.User;
+import com.src.models.DTO.UserInformationDTO;
 import com.src.services.UserService;
-import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/secured")
@@ -22,36 +19,34 @@ public class UserController {
         this.userService = userService;
     }
 
+    //TODO just delete this
     @GetMapping("/userCheck")
     public ResponseEntity<?> userAccess() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Object principal = authentication.getPrincipal();
 
-        if (!(principal instanceof UserDetailsImpl)) {
+        if (!(principal instanceof UserDetailsImpl userDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid principal type");
         }
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) principal;
 
         return ResponseEntity.ok(userDetails.getId());
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getUser(){
+    public ResponseEntity<?> getUserInformation(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUser(authentication);
+        UserInformationDTO userInformation = userService.getUserInformation(authentication);
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userInformation);
     }
 
     @PutMapping("/user")
-    public ResponseEntity<?> updateUser(@RequestParam("newUsername") String newUsername)
+    public ResponseEntity<?> changeUserFullName(@RequestParam("newUsername") String newUsername)
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.updateUser(authentication, newUsername);
+        userService.updateUser(authentication, newUsername);
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok().build();
     }
-
 }

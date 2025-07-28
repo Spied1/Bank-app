@@ -2,7 +2,6 @@ package com.src.configurations;
 
 import com.src.components.TokenFilter;
 import com.src.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -20,13 +19,13 @@ import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfigurator {
+public class SecurityConfiguration {
 
     private final UserService userService;
     private final TokenFilter tokenFilter;
     private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfigurator(UserService userService, TokenFilter tokenFilter, PasswordEncoder passwordEncoder) {
+    public SecurityConfiguration(UserService userService, TokenFilter tokenFilter, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.tokenFilter = tokenFilter;
         this.passwordEncoder = passwordEncoder;
@@ -34,11 +33,14 @@ public class SecurityConfigurator {
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authenticationManagerBuilder
                 .userDetailsService(userService)
-                .passwordEncoder(passwordEncoder)
-                .and()
-                .build();
+                .passwordEncoder(passwordEncoder);
+
+        return authenticationManagerBuilder.build();
     }
 
     @Bean

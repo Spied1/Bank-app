@@ -5,8 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,9 +17,9 @@ import java.io.IOException;
 @Component
 public class TokenFilter extends OncePerRequestFilter {
 
-    private JwtCore jwtCore;
+    private final JwtCore jwtCore;
 
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     public TokenFilter(JwtCore jwtCore, UserDetailsService userDetailsService) {
         this.jwtCore = jwtCore;
@@ -34,8 +32,8 @@ public class TokenFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String jwt = null;
         String username = null;
-        UserDetails userDetails = null;
-        UsernamePasswordAuthenticationToken auth = null;
+        UserDetails userDetails;
+        UsernamePasswordAuthenticationToken auth;
 
         try {
             String headerAuth = request.getHeader("Authorization");
@@ -54,7 +52,7 @@ public class TokenFilter extends OncePerRequestFilter {
                     auth = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities() // 👈 ВАЖНО
+                            userDetails.getAuthorities() // important part
                     );
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }

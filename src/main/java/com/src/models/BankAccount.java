@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.Currency;
 import java.util.Date;
 
 @Getter
@@ -19,6 +20,8 @@ public class BankAccount {
     private String id;
 
     private String userId;
+
+    private Currency currency;
 
     private int balance;
 
