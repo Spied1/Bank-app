@@ -1,8 +1,8 @@
 package com.src.services;
 
 import com.src.components.UserDetailsImpl;
-import com.src.models.DTO.UserInformationDTO;
-import com.src.models.DTO.UserRegistrationDTO;
+import com.src.models.DTO.UserInformation;
+import com.src.models.DTO.UserRegistration;
 import com.src.models.User;
 import com.src.repositorys.UserRepository;
 import org.springframework.security.access.AuthorizationServiceException;
@@ -72,13 +72,13 @@ public class UserService implements UserDetailsService {
         return ((UserDetailsImpl) principal).getId();
     }
 
-    public UserInformationDTO getUserInformation(Authentication authentication) {
+    public UserInformation getUserInformation(Authentication authentication) {
         User user = getUser(authentication);
 
-        return new UserInformationDTO(user.getUsername(), user.getBirthDate());
+        return new UserInformation(user.getUsername(), user.getBirthDate());
     }
 
-    public void registerUser(UserRegistrationDTO signUpRequest) {
+    public void registerUser(UserRegistration signUpRequest) {
         if(userRepository.existsByUsername(signUpRequest.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }

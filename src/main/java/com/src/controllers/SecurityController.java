@@ -1,8 +1,8 @@
 package com.src.controllers;
 
 import com.src.components.JwtCore;
-import com.src.models.DTO.UserLoginDTO;
-import com.src.models.DTO.UserRegistrationDTO;
+import com.src.models.DTO.UserLogin;
+import com.src.models.DTO.UserRegistration;
 import com.src.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,13 +32,13 @@ public class SecurityController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody UserRegistrationDTO signUpRequest) {
+    public ResponseEntity<?> signUp(@RequestBody UserRegistration signUpRequest) {
         userService.registerUser(signUpRequest);
 
         return ResponseEntity.ok("Success");
     }
     @PostMapping("/sign-in")
-    public ResponseEntity<?> signIn(@RequestBody UserLoginDTO signInRequest) {
+    public ResponseEntity<?> signIn(@RequestBody UserLogin signInRequest) {
         Authentication authentication;
 
         try {

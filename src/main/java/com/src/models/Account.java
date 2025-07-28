@@ -11,8 +11,8 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "bank_accounts")
-public class BankAccount {
+@Table(name = "accounts")
+public class Account {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -20,6 +20,8 @@ public class BankAccount {
     private String id;
 
     private String userId;
+
+    private String name;
 
     private Currency currency;
 

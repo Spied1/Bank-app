@@ -1,24 +1,29 @@
 package com.src.services;
 
 import com.src.components.UserDetailsImpl;
-import com.src.models.BankAccount;
-import com.src.repositorys.BankAccountRepository;
+import com.src.models.Account;
+import com.src.models.DTO.AccountCreationInformation;
+import com.src.repositorys.AccountRepository;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class AccountService {
-    private final BankAccountRepository bankAccountRepository;
+    private final AccountRepository bankAccountRepository;
 
-    public AccountService(BankAccountRepository bankAccountRepository) {
+    public AccountService(AccountRepository bankAccountRepository) {
         this.bankAccountRepository = bankAccountRepository;
     }
 
-    public BankAccount bankAccount(String accountId, Authentication authentication) {
-        Optional<BankAccount> account = bankAccountRepository.findById(accountId);
+    public Account getAccountInformationById(String accountId, Authentication authentication) {
+        Optional<Account> account = bankAccountRepository.findById(accountId);
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException();
@@ -31,27 +36,28 @@ public class AccountService {
         return account.get();
     }
 
-    public List<BankAccount> getAllBankAccountsForUser(Authentication authentication) {
+    public List<Account> getAllBankAccountsForUser(Authentication authentication) {
         String userId = getUserId(authentication);
 
         return bankAccountRepository.getAllByUserId(userId);
     }
 
-    public BankAccount addBankAccount(Authentication authentication, Currency currency) {
-        BankAccount bankAccount = new BankAccount();
-        bankAccount.setUserId(getUserId(authentication));
+    public Account addBankAccount(Authentication authentication, AccountCreationInformation accountCreationInformation) {
+        Account account = new Account();
+        account.setUserId(getUserId(authentication));
 
-        bankAccount.setCurrency(currency);
+        account.setName(accountCreationInformation.getName());
+        account.setCurrency(accountCreationInformation.getCurrency());
         Date date = new Date();
 
-        bankAccount.setCreatedAt(date);
-        bankAccount.setUpdatedAt(date);
-        bankAccountRepository.save(bankAccount);
+        account.setCreatedAt(date);
+        account.setUpdatedAt(date);
+        bankAccountRepository.save(account);
 
-        return bankAccount;
+        return account;
     }
 
-    public String getUserId(Authentication authentication) {
+    private String getUserId(Authentication authentication) {
         Object principal = authentication.getPrincipal();
 
         if (!(principal instanceof UserDetailsImpl)) {
@@ -59,5 +65,36 @@ public class AccountService {
         }
 
         return ((UserDetailsImpl) principal).getId();
+    }
+
+    @Transactional
+    public void sendMoney(Authentication authentication, String senderAccountId,
+                          String receiverAccountId, int moneyToSend) {
+        String senderId = getUserId(authentication);
+
+        if (moneyToSend <= 0) {
+            throw new IllegalArgumentException();
+        }
+
+        Optional<Account> senderAccount = bankAccountRepository.findById(senderAccountId);
+        Optional<Account> receiverAccount = bankAccountRepository.findById(receiverAccountId);
+
+        if (senderAccount.isEmpty() || receiverAccount.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        if (senderAccount.get().getBalance() <= moneyToSend) {
+            throw new IllegalArgumentException();
+        }
+
+        if (senderAccount.get().getCurrency() != receiverAccount.get().getCurrency()) {
+            throw new IllegalArgumentException();
+        }
+
+        senderAccount.get().setBalance(senderAccount.get().getBalance() - moneyToSend);
+        receiverAccount.get().setBalance(receiverAccount.get().getBalance() + moneyToSend);
+
+        bankAccountRepository.save(senderAccount.get());
+        bankAccountRepository.save(receiverAccount.get());
     }
 }

@@ -1,7 +1,7 @@
 package com.src.controllers;
 
 import com.src.components.UserDetailsImpl;
-import com.src.models.DTO.UserInformationDTO;
+import com.src.models.DTO.UserInformation;
 import com.src.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class UserController {
     @GetMapping("/user")
     public ResponseEntity<?> getUserInformation(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInformationDTO userInformation = userService.getUserInformation(authentication);
+        UserInformation userInformation = userService.getUserInformation(authentication);
 
         return ResponseEntity.ok(userInformation);
     }
