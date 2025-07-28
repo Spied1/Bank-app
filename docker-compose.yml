@@ -1,0 +1,15 @@
+services:
+  trivia-db:
+    image: postgres
+    container_name: bank-db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_DB=bank
+      - POSTGRES_PASSWORD=123456
+      - TZ
+    ports:
+      - "5434:5432"
+    volumes:
+#      - ./.init-scripts/:/docker-entrypoint-initdb.d/
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro

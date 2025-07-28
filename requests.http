@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:8080
+@userId = f295e93f-beaa-4304-a63f-257246a9c274
+
+###
+GET {{baseUrl}}/user
+userId: {{userId}}
+
+###
+POST {{baseUrl}}/user
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Man",
+  "accountId": 1,
+  "birthDate": "2000-12-01"
+}
+
+###
+
+POST {{baseUrl}}/account
+userId: {{userId}}
+
+###
+
+GET {{baseUrl}}/account
+userId: {{userId}}
+
+###
+
+GET {{baseUrl}}/account/1edf7234-83ad-40eb-bf77-258c68bd6ae5
