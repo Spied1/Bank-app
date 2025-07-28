@@ -1,7 +1,10 @@
 package com.src.controllers;
 
+import com.src.exeptions.account.MismatchOfCurrenciesException;
+import com.src.exeptions.account.NoReceiverOrSenderAccountException;
+import com.src.exeptions.account.NotEnoughMoneyException;
+import com.src.exeptions.account.WrongAmountOfMoneyException;
 import com.src.models.Account;
-import com.src.models.DTO.AccountInformationToSend;
 import com.src.models.DTO.AccountCreationInformation;
 import com.src.services.AccountService;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +40,7 @@ public class AccountController {
     }
 
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<?> getAccountById(@PathVariable("accountId") String accountId){
+    public ResponseEntity<?> getAccountById(@PathVariable("accountId") String accountId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Account userAccount = accountService.getAccountInformationById(accountId, authentication);
 
@@ -48,9 +51,14 @@ public class AccountController {
     public ResponseEntity<?> sendMoney(@RequestParam("senderId") String senderId,
                                        @RequestParam("receiverId") String receiverId,
                                        @RequestParam("moneyToSend") int moneyToSend) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        accountService.sendMoney(authentication, senderId, receiverId, moneyToSend);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            accountService.sendMoney(authentication, senderId, receiverId, moneyToSend);
 
-        return ResponseEntity.ok().build();
+            return ResponseEntity.ok().build();
+        } catch (WrongAmountOfMoneyException | NotEnoughMoneyException | NoReceiverOrSenderAccountException |
+                 MismatchOfCurrenciesException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

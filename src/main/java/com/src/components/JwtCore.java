@@ -1,14 +1,15 @@
 package com.src.components;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
@@ -29,25 +30,26 @@ public class JwtCore {
         key = new SecretKeySpec(keyBytes, 0, keyBytes.length, "HmacSHA256");
     }
 
-
     public String generateToken(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
+        Instant now = Instant.now();
+        Instant expiry = now.plusMillis(lifetime);
+
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + lifetime))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiry))
+                .subject(userDetails.getUsername())
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 
     public String getNameFromJwt(String token) {
-        return Jwts
-                .parser()
-                .setSigningKey(key)
+        Jws<Claims> jws = Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .parseSignedClaims(token);
+
+        return jws.getPayload().getSubject();
     }
 }

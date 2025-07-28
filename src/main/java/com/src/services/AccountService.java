@@ -1,6 +1,10 @@
 package com.src.services;
 
 import com.src.components.UserDetailsImpl;
+import com.src.exeptions.account.MismatchOfCurrenciesException;
+import com.src.exeptions.account.NoReceiverOrSenderAccountException;
+import com.src.exeptions.account.NotEnoughMoneyException;
+import com.src.exeptions.account.WrongAmountOfMoneyException;
 import com.src.models.Account;
 import com.src.models.DTO.AccountCreationInformation;
 import com.src.repositorys.AccountRepository;
@@ -69,26 +73,28 @@ public class AccountService {
 
     @Transactional
     public void sendMoney(Authentication authentication, String senderAccountId,
-                          String receiverAccountId, int moneyToSend) {
-        String senderId = getUserId(authentication);
-
+                          String receiverAccountId, int moneyToSend) throws NotEnoughMoneyException, NoReceiverOrSenderAccountException, WrongAmountOfMoneyException, MismatchOfCurrenciesException {
         if (moneyToSend <= 0) {
-            throw new IllegalArgumentException();
+            throw new WrongAmountOfMoneyException();
         }
 
         Optional<Account> senderAccount = bankAccountRepository.findById(senderAccountId);
         Optional<Account> receiverAccount = bankAccountRepository.findById(receiverAccountId);
 
         if (senderAccount.isEmpty() || receiverAccount.isEmpty()) {
+            throw new NoReceiverOrSenderAccountException();
+        }
+
+        if (!Objects.equals(getUserId(authentication), senderAccount.get().getUserId())) {
             throw new IllegalArgumentException();
         }
 
         if (senderAccount.get().getBalance() <= moneyToSend) {
-            throw new IllegalArgumentException();
+            throw new NotEnoughMoneyException();
         }
 
         if (senderAccount.get().getCurrency() != receiverAccount.get().getCurrency()) {
-            throw new IllegalArgumentException();
+            throw new MismatchOfCurrenciesException();
         }
 
         senderAccount.get().setBalance(senderAccount.get().getBalance() - moneyToSend);
