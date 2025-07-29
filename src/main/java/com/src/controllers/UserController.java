@@ -2,12 +2,15 @@ package com.src.controllers;
 
 import com.src.components.UserDetailsImpl;
 import com.src.models.DTO.UserInformation;
+import com.src.models.Transfer;
 import com.src.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -34,7 +37,7 @@ public class UserController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getUserInformation(){
+    public ResponseEntity<?> getUserInformation() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInformation userInformation = userService.getUserInformation(authentication);
 
@@ -42,11 +45,19 @@ public class UserController {
     }
 
     @PutMapping("/user")
-    public ResponseEntity<?> changeUserFullName(@RequestParam("newUsername") String newUsername)
-    {
+    public ResponseEntity<?> changeUserFullName(@RequestParam("newUsername") String newUsername) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         userService.updateUser(authentication, newUsername);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/transfers")
+    public ResponseEntity<?> getAllTransfersByUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        List<Transfer> transferList = userService.getAllSentTransfersByUser(authentication);
+
+        return ResponseEntity.ok(transferList);
     }
 }

@@ -23,6 +23,7 @@ import java.util.Optional;
 @Service
 public class AccountService {
     private final AccountRepository bankAccountRepository;
+
     private final TransferRepository transferRepository;
 
     public AccountService(AccountRepository bankAccountRepository, TransferRepository transferRepository) {
@@ -115,6 +116,9 @@ public class AccountService {
 
         newTransfer.setTimeOfTransfer(new Date());
 
+        senderAccount.get().setUpdatedAt(new Date());
+        receiverAccount.get().setUpdatedAt(new Date());
+
         transferRepository.save(newTransfer);
         bankAccountRepository.save(senderAccount.get());
         bankAccountRepository.save(receiverAccount.get());
@@ -122,8 +126,6 @@ public class AccountService {
 
     public List<Transfer> getAllTransfersByAccount(Authentication authentication, String accountId) {
         List<Transfer> transfers = transferRepository.getAllTransfersByAccountId(accountId);
-
-        System.out.println("accountId = >" + accountId + "<");
 
         if (transfers.isEmpty()) {
             return null;

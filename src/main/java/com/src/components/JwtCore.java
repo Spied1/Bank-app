@@ -1,12 +1,13 @@
 package com.src.components;
 
-import io.jsonwebtoken.*;
-import org.springframework.security.core.Authentication;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
@@ -15,7 +16,6 @@ import java.util.Date;
 
 @Component
 public class JwtCore {
-
     @Value("${backendbankclientprogram.app.secret}")
     private String secret;
 

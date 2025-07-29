@@ -11,20 +11,20 @@ import java.util.Collection;
 @Data
 @AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {
-
     private String id;
 
     private String username;
 
     private String password;
 
-    public static UserDetails build(User user){
+    public static UserDetails build(User user) {
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
                 user.getPassword()
         );
     }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

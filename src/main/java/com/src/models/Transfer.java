@@ -12,7 +12,6 @@ import java.util.Date;
 @Entity
 @Table(name = "transfers")
 public class Transfer {
-
     @Id
     @GeneratedValue(generator = "uuid2")
     @Column(name = "transfer_id")

@@ -20,9 +20,10 @@ import org.springframework.web.cors.CorsConfiguration;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-
     private final UserService userService;
+
     private final TokenFilter tokenFilter;
+
     private final PasswordEncoder passwordEncoder;
 
     public SecurityConfiguration(UserService userService, TokenFilter tokenFilter, PasswordEncoder passwordEncoder) {
@@ -59,4 +60,3 @@ public class SecurityConfiguration {
         return http.build();
     }
 }
-

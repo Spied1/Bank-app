@@ -3,7 +3,9 @@ package com.src.services;
 import com.src.components.UserDetailsImpl;
 import com.src.models.DTO.UserInformation;
 import com.src.models.DTO.UserRegistration;
+import com.src.models.Transfer;
 import com.src.models.User;
+import com.src.repositorys.TransferRepository;
 import com.src.repositorys.UserRepository;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
@@ -13,17 +15,23 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final TransferRepository transferRepository;
+
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TransferRepository transferRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.transferRepository = transferRepository;
     }
 
     public User getUser(Authentication authentication) {
@@ -79,7 +87,7 @@ public class UserService implements UserDetailsService {
     }
 
     public void registerUser(UserRegistration signUpRequest) {
-        if(userRepository.existsByUsername(signUpRequest.getUsername())) {
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -88,5 +96,17 @@ public class UserService implements UserDetailsService {
         user.setUsername(signUpRequest.getUsername());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         userRepository.save(user);
+    }
+
+    public List<Transfer> getAllSentTransfersByUser(Authentication authentication) {
+        String userId = getUserId(authentication);
+
+        List<Transfer> userTransfers = transferRepository.getAllTransfersByUserId(userId);
+
+        if (userTransfers.isEmpty()) {
+            return null;
+        }
+
+        return userTransfers;
     }
 }

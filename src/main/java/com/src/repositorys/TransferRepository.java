@@ -12,5 +12,8 @@ import java.util.UUID;
 @Repository
 public interface TransferRepository extends JpaRepository<Transfer, UUID> {
     @Query("SELECT u FROM Transfer u WHERE u.senderAccountId = :accountId")
-    List<Transfer> getAllTransfersByAccountId(@Param("accountId")String accountId);
+    List<Transfer> getAllTransfersByAccountId(@Param("accountId") String accountId);
+
+    @Query("SELECT u FROM Transfer u where u.senderUserId = :userId")
+    List<Transfer> getAllTransfersByUserId(@Param("userId") String userId);
 }
