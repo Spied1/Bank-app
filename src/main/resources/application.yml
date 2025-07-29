@@ -13,6 +13,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+
 backendbankclientprogram:
   app:
     secret: YtK3cKn0clKHH3ZCDlQCyBBiKUOD2klKvtSp+lLUQ7I=

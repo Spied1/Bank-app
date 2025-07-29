@@ -37,6 +37,7 @@ public class SecurityController {
 
         return ResponseEntity.ok("Success");
     }
+
     @PostMapping("/sign-in")
     public ResponseEntity<?> signIn(@RequestBody UserLogin signInRequest) {
         Authentication authentication;

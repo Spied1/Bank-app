@@ -7,7 +7,9 @@ import com.src.exeptions.account.NotEnoughMoneyException;
 import com.src.exeptions.account.WrongAmountOfMoneyException;
 import com.src.models.Account;
 import com.src.models.DTO.AccountCreationInformation;
+import com.src.models.Transfer;
 import com.src.repositorys.AccountRepository;
+import com.src.repositorys.TransferRepository;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -21,9 +23,11 @@ import java.util.Optional;
 @Service
 public class AccountService {
     private final AccountRepository bankAccountRepository;
+    private final TransferRepository transferRepository;
 
-    public AccountService(AccountRepository bankAccountRepository) {
+    public AccountService(AccountRepository bankAccountRepository, TransferRepository transferRepository) {
         this.bankAccountRepository = bankAccountRepository;
+        this.transferRepository = transferRepository;
     }
 
     public Account getAccountInformationById(String accountId, Authentication authentication) {
@@ -99,8 +103,36 @@ public class AccountService {
 
         senderAccount.get().setBalance(senderAccount.get().getBalance() - moneyToSend);
         receiverAccount.get().setBalance(receiverAccount.get().getBalance() + moneyToSend);
+        Transfer newTransfer = new Transfer();
+        newTransfer.setSenderUserId(senderAccount.get().getUserId());
+        newTransfer.setSenderAccountId(senderAccount.get().getId());
 
+        newTransfer.setReceiverUserId(receiverAccount.get().getUserId());
+        newTransfer.setReceiverAccountId(receiverAccount.get().getId());
+
+        newTransfer.setAmountOfMoney(moneyToSend);
+        newTransfer.setCurrency(senderAccount.get().getCurrency());
+
+        newTransfer.setTimeOfTransfer(new Date());
+
+        transferRepository.save(newTransfer);
         bankAccountRepository.save(senderAccount.get());
         bankAccountRepository.save(receiverAccount.get());
+    }
+
+    public List<Transfer> getAllTransfersByAccount(Authentication authentication, String accountId) {
+        List<Transfer> transfers = transferRepository.getAllTransfersByAccountId(accountId);
+
+        System.out.println("accountId = >" + accountId + "<");
+
+        if (transfers.isEmpty()) {
+            return null;
+        }
+
+        if (!Objects.equals(getUserId(authentication), transfers.getFirst().getSenderUserId())) {
+            throw new IllegalArgumentException();
+        }
+
+        return transfers;
     }
 }

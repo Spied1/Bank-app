@@ -6,6 +6,7 @@ import com.src.exeptions.account.NotEnoughMoneyException;
 import com.src.exeptions.account.WrongAmountOfMoneyException;
 import com.src.models.Account;
 import com.src.models.DTO.AccountCreationInformation;
+import com.src.models.Transfer;
 import com.src.services.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -60,5 +61,13 @@ public class AccountController {
                  MismatchOfCurrenciesException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/transfer-history/{accountId}")
+    public ResponseEntity<?> getAllTransfersForAccount(@PathVariable("accountId") String accountId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        List<Transfer> transfers = accountService.getAllTransfersByAccount(authentication, accountId);
+
+        return ResponseEntity.ok(transfers);
     }
 }
