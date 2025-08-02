@@ -8,10 +8,12 @@ import com.src.exeptions.account.WrongAmountOfMoneyException;
 import com.src.models.Account;
 import com.src.models.DTO.AccountCreationInformation;
 import com.src.models.Transfer;
+import com.src.models.User;
 import com.src.repositorys.AccountRepository;
 import com.src.repositorys.TransferRepository;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,36 +26,44 @@ import java.util.Optional;
 public class AccountService {
     private final AccountRepository bankAccountRepository;
 
+    private final UserService userService;
+
     private final TransferRepository transferRepository;
 
-    public AccountService(AccountRepository bankAccountRepository, TransferRepository transferRepository) {
+    public AccountService(AccountRepository bankAccountRepository, UserService userService, TransferRepository transferRepository) {
         this.bankAccountRepository = bankAccountRepository;
+        this.userService = userService;
         this.transferRepository = transferRepository;
     }
 
-    public Account getAccountInformationById(String accountId, Authentication authentication) {
+    public Account getAccountInformationById(String accountId) {
         Optional<Account> account = bankAccountRepository.findById(accountId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException();
         }
 
-        if (!Objects.equals(account.get().getUserId(), getUserId(authentication))) {
+        if (!Objects.equals(account.get().getUser().getId(), getUserId(authentication))) {
             throw new IllegalArgumentException();
         }
 
         return account.get();
     }
 
-    public List<Account> getAllBankAccountsForUser(Authentication authentication) {
-        String userId = getUserId(authentication);
+    public List<Account> getAllBankAccountsForUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return bankAccountRepository.getAllByUserId(userId);
+        return userService.getUser(authentication).getAccounts();
     }
 
-    public Account addBankAccount(Authentication authentication, AccountCreationInformation accountCreationInformation) {
+    public Account addBankAccount(AccountCreationInformation accountCreationInformation) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        User user = userService.getUser(authentication);
         Account account = new Account();
-        account.setUserId(getUserId(authentication));
+        account.setUser(user);
+        user.getAccounts().add(account);
 
         account.setName(accountCreationInformation.getName());
         account.setCurrency(accountCreationInformation.getCurrency());
@@ -62,6 +72,7 @@ public class AccountService {
         account.setCreatedAt(date);
         account.setUpdatedAt(date);
         bankAccountRepository.save(account);
+        userService.updateUser(user);
 
         return account;
     }
@@ -77,8 +88,10 @@ public class AccountService {
     }
 
     @Transactional
-    public void sendMoney(Authentication authentication, String senderAccountId,
+    public void sendMoney(String senderAccountId,
                           String receiverAccountId, int moneyToSend) throws NotEnoughMoneyException, NoReceiverOrSenderAccountException, WrongAmountOfMoneyException, MismatchOfCurrenciesException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (moneyToSend <= 0) {
             throw new WrongAmountOfMoneyException();
         }
@@ -90,7 +103,7 @@ public class AccountService {
             throw new NoReceiverOrSenderAccountException();
         }
 
-        if (!Objects.equals(getUserId(authentication), senderAccount.get().getUserId())) {
+        if (!Objects.equals(getUserId(authentication), senderAccount.get().getUser().getId())) {
             throw new IllegalArgumentException();
         }
 
@@ -104,17 +117,7 @@ public class AccountService {
 
         senderAccount.get().setBalance(senderAccount.get().getBalance() - moneyToSend);
         receiverAccount.get().setBalance(receiverAccount.get().getBalance() + moneyToSend);
-        Transfer newTransfer = new Transfer();
-        newTransfer.setSenderUserId(senderAccount.get().getUserId());
-        newTransfer.setSenderAccountId(senderAccount.get().getId());
-
-        newTransfer.setReceiverUserId(receiverAccount.get().getUserId());
-        newTransfer.setReceiverAccountId(receiverAccount.get().getId());
-
-        newTransfer.setAmountOfMoney(moneyToSend);
-        newTransfer.setCurrency(senderAccount.get().getCurrency());
-
-        newTransfer.setTimeOfTransfer(new Date());
+        Transfer newTransfer = getTransfer(moneyToSend, senderAccount, receiverAccount);
 
         senderAccount.get().setUpdatedAt(new Date());
         receiverAccount.get().setUpdatedAt(new Date());
@@ -124,14 +127,36 @@ public class AccountService {
         bankAccountRepository.save(receiverAccount.get());
     }
 
-    public List<Transfer> getAllTransfersByAccount(Authentication authentication, String accountId) {
+    private Transfer getTransfer(int moneyToSend, Optional<Account> senderAccount, Optional<Account> receiverAccount) throws NoReceiverOrSenderAccountException {
+        Transfer newTransfer = new Transfer();
+
+        if (senderAccount.isEmpty() || receiverAccount.isEmpty()) {
+            throw new NoReceiverOrSenderAccountException();
+        }
+
+        newTransfer.setSender(senderAccount.get().getUser());
+        newTransfer.setSenderAccount(senderAccount.get());
+
+        newTransfer.setReceiver(receiverAccount.get().getUser());
+        newTransfer.setReceiverAccount(receiverAccount.get());
+
+        newTransfer.setAmountOfMoney(moneyToSend);
+        newTransfer.setCurrency(senderAccount.get().getCurrency());
+
+        newTransfer.setTimeOfTransfer(new Date());
+        return newTransfer;
+    }
+
+    public List<Transfer> getAllTransfersByAccount(String accountId) {
         List<Transfer> transfers = transferRepository.getAllTransfersByAccountId(accountId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (transfers.isEmpty()) {
             return null;
         }
 
-        if (!Objects.equals(getUserId(authentication), transfers.getFirst().getSenderUserId())) {
+        if (!Objects.equals(getUserId(authentication), transfers.getFirst().getSender().getId())) {
             throw new IllegalArgumentException();
         }
 

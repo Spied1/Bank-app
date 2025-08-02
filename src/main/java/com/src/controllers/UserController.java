@@ -1,10 +1,8 @@
 package com.src.controllers;
 
-import com.src.components.UserDetailsImpl;
 import com.src.models.DTO.UserInformation;
 import com.src.models.Transfer;
 import com.src.services.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,24 +20,9 @@ public class UserController {
         this.userService = userService;
     }
 
-    //TODO just delete this
-    @GetMapping("/userCheck")
-    public ResponseEntity<?> userAccess() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        Object principal = authentication.getPrincipal();
-
-        if (!(principal instanceof UserDetailsImpl userDetails)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid principal type");
-        }
-
-        return ResponseEntity.ok(userDetails.getId());
-    }
-
     @GetMapping("/user")
     public ResponseEntity<?> getUserInformation() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInformation userInformation = userService.getUserInformation(authentication);
+        UserInformation userInformation = userService.getUserInformation();
 
         return ResponseEntity.ok(userInformation);
     }
@@ -54,9 +37,7 @@ public class UserController {
 
     @GetMapping("/transfers")
     public ResponseEntity<?> getAllTransfersByUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        List<Transfer> transferList = userService.getAllSentTransfersByUser(authentication);
+        List<Transfer> transferList = userService.getAllSentTransfersByUser();
 
         return ResponseEntity.ok(transferList);
     }

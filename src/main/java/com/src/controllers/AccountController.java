@@ -9,8 +9,6 @@ import com.src.models.DTO.AccountCreationInformation;
 import com.src.models.Transfer;
 import com.src.services.AccountService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,24 +24,21 @@ public class AccountController {
 
     @GetMapping("/account")
     public ResponseEntity<?> getAllAccountsForUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<Account> allBankAccountsForUser = accountService.getAllBankAccountsForUser(authentication);
+        List<Account> allBankAccountsForUser = accountService.getAllBankAccountsForUser();
 
         return ResponseEntity.ok(allBankAccountsForUser);
     }
 
     @PostMapping("/account")
     public ResponseEntity<?> addAccountForUser(@RequestBody AccountCreationInformation accountCreationInformation) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Account newBankAccount = accountService.addBankAccount(authentication, accountCreationInformation);
+        Account newBankAccount = accountService.addBankAccount(accountCreationInformation);
 
         return ResponseEntity.ok(newBankAccount);
     }
 
     @GetMapping("/account/{accountId}")
     public ResponseEntity<?> getAccountById(@PathVariable("accountId") String accountId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Account userAccount = accountService.getAccountInformationById(accountId, authentication);
+        Account userAccount = accountService.getAccountInformationById(accountId);
 
         return ResponseEntity.ok(userAccount);
     }
@@ -53,8 +48,7 @@ public class AccountController {
                                        @RequestParam("receiverId") String receiverId,
                                        @RequestParam("moneyToSend") int moneyToSend) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            accountService.sendMoney(authentication, senderId, receiverId, moneyToSend);
+            accountService.sendMoney(senderId, receiverId, moneyToSend);
 
             return ResponseEntity.ok().build();
         } catch (WrongAmountOfMoneyException | NotEnoughMoneyException | NoReceiverOrSenderAccountException |
@@ -65,8 +59,7 @@ public class AccountController {
 
     @GetMapping("/transfer-history/{accountId}")
     public ResponseEntity<?> getAllTransfersForAccount(@PathVariable("accountId") String accountId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<Transfer> transfers = accountService.getAllTransfersByAccount(authentication, accountId);
+        List<Transfer> transfers = accountService.getAllTransfersByAccount(accountId);
 
         return ResponseEntity.ok(transfers);
     }

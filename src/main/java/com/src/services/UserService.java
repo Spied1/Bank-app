@@ -9,6 +9,7 @@ import com.src.repositorys.TransferRepository;
 import com.src.repositorys.UserRepository;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -80,7 +81,8 @@ public class UserService implements UserDetailsService {
         return ((UserDetailsImpl) principal).getId();
     }
 
-    public UserInformation getUserInformation(Authentication authentication) {
+    public UserInformation getUserInformation() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = getUser(authentication);
 
         return new UserInformation(user.getUsername(), user.getBirthDate());
@@ -98,7 +100,8 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public List<Transfer> getAllSentTransfersByUser(Authentication authentication) {
+    public List<Transfer> getAllSentTransfersByUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = getUserId(authentication);
 
         List<Transfer> userTransfers = transferRepository.getAllTransfersByUserId(userId);
@@ -108,5 +111,9 @@ public class UserService implements UserDetailsService {
         }
 
         return userTransfers;
+    }
+
+    public void updateUser(User user) {
+        userRepository.save(user);
     }
 }

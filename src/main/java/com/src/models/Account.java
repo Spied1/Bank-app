@@ -1,12 +1,15 @@
 package com.src.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,13 +22,22 @@ public class Account {
     @Column(name = "id", columnDefinition = "VARCHAR(36)")
     private String id;
 
-    private String userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     private String name;
 
     private Currency currency;
 
     private int balance;
+
+    @OneToMany(mappedBy = "senderAccount")
+    private List<Transfer> outgoingTransfers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "receiverAccount")
+    private List<Transfer> incomingTransfers = new ArrayList<>();
 
     private Date createdAt;
 

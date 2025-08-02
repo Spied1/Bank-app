@@ -1,5 +1,6 @@
 package com.src.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,17 +18,25 @@ public class Transfer {
     @Column(name = "transfer_id")
     private String transferId;
 
-    @Column(name = "sender_user_id")
-    private String senderUserId;
+    @ManyToOne
+    @JoinColumn(name = "sender")
+    @JsonIgnore
+    private User sender;
 
-    @Column(name = "sender_account_id")
-    private String senderAccountId;
+    @ManyToOne
+    @JoinColumn(name = "sender_account_id")
+    @JsonIgnore
+    private Account senderAccount;
 
-    @Column(name = "receiver_user_id")
-    private String receiverUserId;
+    @ManyToOne
+    @JoinColumn(name = "receiver")
+    @JsonIgnore
+    private User receiver;
 
-    @Column(name = "receiver_account_id")
-    private String receiverAccountId;
+    @ManyToOne
+    @JoinColumn(name = "receiver_account_id")
+    @JsonIgnore
+    private Account receiverAccount;
 
     @Column(name = "amount_of_money")
     private int amountOfMoney;

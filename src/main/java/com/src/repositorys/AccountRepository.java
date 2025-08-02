@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
-    @Query("SELECT u FROM Account u where u.userId = :userId")
+    @Query("SELECT u FROM Account u where u.id = :userId")
     List<Account> getAllByUserId(@Param("userId") String userId);
 }
