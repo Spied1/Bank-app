@@ -7,7 +7,7 @@ import com.src.models.DTO.UserInformation;
 import com.src.models.DTO.UserLogin;
 import com.src.models.DTO.UserRegistration;
 import com.src.models.User;
-import com.src.repositorys.UserRepository;
+import com.src.repositories.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

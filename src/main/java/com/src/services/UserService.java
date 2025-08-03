@@ -2,20 +2,17 @@ package com.src.services;
 
 import com.src.components.UserDetailsImpl;
 import com.src.exeptions.user.NoUserFound;
-import com.src.exeptions.user.UserWithGivenUsernameAlreadyExists;
 import com.src.models.DTO.UserInformation;
-import com.src.models.DTO.UserRegistration;
 import com.src.models.Transfer;
 import com.src.models.User;
-import com.src.repositorys.TransferRepository;
-import com.src.repositorys.UserRepository;
+import com.src.repositories.TransferRepository;
+import com.src.repositories.UserRepository;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

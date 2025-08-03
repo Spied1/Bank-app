@@ -1,4 +1,4 @@
-package com.src.repositorys;
+package com.src.repositories;
 
 import com.src.models.Transfer;
 import org.springframework.data.jpa.repository.JpaRepository;
