@@ -1,6 +1,8 @@
 package com.src.services;
 
 import com.src.components.UserDetailsImpl;
+import com.src.exeptions.user.NoUserFound;
+import com.src.exeptions.user.UserWithGivenUsernameAlreadyExists;
 import com.src.models.DTO.UserInformation;
 import com.src.models.DTO.UserRegistration;
 import com.src.models.Transfer;
@@ -24,29 +26,27 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
 
-    private final PasswordEncoder passwordEncoder;
-
     private final TransferRepository transferRepository;
 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TransferRepository transferRepository) {
+    public UserService(UserRepository userRepository, TransferRepository transferRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.transferRepository = transferRepository;
     }
 
-    public User getUser(Authentication authentication) {
+    public User getUser(Authentication authentication) throws NoUserFound {
         String userId = getUserId(authentication);
         Optional<User> user = userRepository.findById(userId);
 
         if (user.isEmpty()) {
-            throw new IllegalArgumentException();
+            throw new NoUserFound();
         }
 
         return user.get();
     }
 
-    public void updateUser(Authentication authentication, String newName) {
+    public void changeUsername(String newName) throws NoUserFound {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User updatedUser = getUser(authentication);
 
         if (Objects.equals(newName, updatedUser.getName())) {
@@ -81,23 +81,11 @@ public class UserService implements UserDetailsService {
         return ((UserDetailsImpl) principal).getId();
     }
 
-    public UserInformation getUserInformation() {
+    public UserInformation getUserInformation() throws NoUserFound {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = getUser(authentication);
 
         return new UserInformation(user.getUsername(), user.getBirthDate());
-    }
-
-    public void registerUser(UserRegistration signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-
-        User user = new User();
-        user.setName(signUpRequest.getFullName());
-        user.setUsername(signUpRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-        userRepository.save(user);
     }
 
     public List<Transfer> getAllSentTransfersByUser() {

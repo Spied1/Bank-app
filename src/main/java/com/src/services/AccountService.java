@@ -1,10 +1,8 @@
 package com.src.services;
 
 import com.src.components.UserDetailsImpl;
-import com.src.exeptions.account.MismatchOfCurrenciesException;
-import com.src.exeptions.account.NoReceiverOrSenderAccountException;
-import com.src.exeptions.account.NotEnoughMoneyException;
-import com.src.exeptions.account.WrongAmountOfMoneyException;
+import com.src.exeptions.account.*;
+import com.src.exeptions.user.NoUserFound;
 import com.src.models.Account;
 import com.src.models.DTO.AccountCreationInformation;
 import com.src.models.Transfer;
@@ -36,28 +34,28 @@ public class AccountService {
         this.transferRepository = transferRepository;
     }
 
-    public Account getAccountInformationById(String accountId) {
+    public Account getAccountInformationById(String accountId) throws NoAccountWithGivenParameters, WrongUserForAccount {
         Optional<Account> account = bankAccountRepository.findById(accountId);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (account.isEmpty()) {
-            throw new IllegalArgumentException();
+            throw new NoAccountWithGivenParameters();
         }
 
         if (!Objects.equals(account.get().getUser().getId(), getUserId(authentication))) {
-            throw new IllegalArgumentException();
+            throw new WrongUserForAccount();
         }
 
         return account.get();
     }
 
-    public List<Account> getAllBankAccountsForUser() {
+    public List<Account> getAllBankAccountsForUser() throws NoUserFound {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return userService.getUser(authentication).getAccounts();
     }
 
-    public Account addBankAccount(AccountCreationInformation accountCreationInformation) {
+    public Account addBankAccount(AccountCreationInformation accountCreationInformation) throws NoUserFound {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = userService.getUser(authentication);
@@ -89,7 +87,7 @@ public class AccountService {
 
     @Transactional
     public void sendMoney(String senderAccountId,
-                          String receiverAccountId, int moneyToSend) throws NotEnoughMoneyException, NoReceiverOrSenderAccountException, WrongAmountOfMoneyException, MismatchOfCurrenciesException {
+                          String receiverAccountId, int moneyToSend) throws NotEnoughMoneyException, NoReceiverOrSenderAccountException, WrongAmountOfMoneyException, MismatchOfCurrenciesException, WrongUserForAccount {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (moneyToSend <= 0) {
@@ -104,7 +102,7 @@ public class AccountService {
         }
 
         if (!Objects.equals(getUserId(authentication), senderAccount.get().getUser().getId())) {
-            throw new IllegalArgumentException();
+            throw new WrongUserForAccount();
         }
 
         if (senderAccount.get().getBalance() <= moneyToSend) {
@@ -147,7 +145,7 @@ public class AccountService {
         return newTransfer;
     }
 
-    public List<Transfer> getAllTransfersByAccount(String accountId) {
+    public List<Transfer> getAllTransfersByAccount(String accountId) throws WrongUserForAccount {
         List<Transfer> transfers = transferRepository.getAllTransfersByAccountId(accountId);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -157,7 +155,7 @@ public class AccountService {
         }
 
         if (!Objects.equals(getUserId(authentication), transfers.getFirst().getSender().getId())) {
-            throw new IllegalArgumentException();
+            throw new WrongUserForAccount();
         }
 
         return transfers;

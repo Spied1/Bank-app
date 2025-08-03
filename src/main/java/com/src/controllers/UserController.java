@@ -1,11 +1,10 @@
 package com.src.controllers;
 
+import com.src.exeptions.user.NoUserFound;
 import com.src.models.DTO.UserInformation;
 import com.src.models.Transfer;
 import com.src.services.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,17 +21,24 @@ public class UserController {
 
     @GetMapping("/user")
     public ResponseEntity<?> getUserInformation() {
-        UserInformation userInformation = userService.getUserInformation();
+        try {
+            UserInformation userInformation = userService.getUserInformation();
 
-        return ResponseEntity.ok(userInformation);
+            return ResponseEntity.ok(userInformation);
+        } catch (NoUserFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/user")
     public ResponseEntity<?> changeUserFullName(@RequestParam("newUsername") String newUsername) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        userService.updateUser(authentication, newUsername);
+        try {
+            userService.changeUsername(newUsername);
 
-        return ResponseEntity.ok().build();
+            return ResponseEntity.ok().build();
+        } catch (NoUserFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/transfers")

@@ -1,9 +1,7 @@
 package com.src.controllers;
 
-import com.src.exeptions.account.MismatchOfCurrenciesException;
-import com.src.exeptions.account.NoReceiverOrSenderAccountException;
-import com.src.exeptions.account.NotEnoughMoneyException;
-import com.src.exeptions.account.WrongAmountOfMoneyException;
+import com.src.exeptions.account.*;
+import com.src.exeptions.user.NoUserFound;
 import com.src.models.Account;
 import com.src.models.DTO.AccountCreationInformation;
 import com.src.models.Transfer;
@@ -24,23 +22,35 @@ public class AccountController {
 
     @GetMapping("/account")
     public ResponseEntity<?> getAllAccountsForUser() {
-        List<Account> allBankAccountsForUser = accountService.getAllBankAccountsForUser();
+        try {
+            List<Account> allBankAccountsForUser = accountService.getAllBankAccountsForUser();
 
-        return ResponseEntity.ok(allBankAccountsForUser);
+            return ResponseEntity.ok(allBankAccountsForUser);
+        } catch (NoUserFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/account")
     public ResponseEntity<?> addAccountForUser(@RequestBody AccountCreationInformation accountCreationInformation) {
-        Account newBankAccount = accountService.addBankAccount(accountCreationInformation);
+        try {
+            Account newBankAccount = accountService.addBankAccount(accountCreationInformation);
 
-        return ResponseEntity.ok(newBankAccount);
+            return ResponseEntity.ok(newBankAccount);
+        } catch (NoUserFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/account/{accountId}")
     public ResponseEntity<?> getAccountById(@PathVariable("accountId") String accountId) {
-        Account userAccount = accountService.getAccountInformationById(accountId);
+        try {
+            Account userAccount = accountService.getAccountInformationById(accountId);
 
-        return ResponseEntity.ok(userAccount);
+            return ResponseEntity.ok(userAccount);
+        } catch (NoAccountWithGivenParameters | WrongUserForAccount e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/account/send-money")
@@ -52,15 +62,19 @@ public class AccountController {
 
             return ResponseEntity.ok().build();
         } catch (WrongAmountOfMoneyException | NotEnoughMoneyException | NoReceiverOrSenderAccountException |
-                 MismatchOfCurrenciesException e) {
+                 MismatchOfCurrenciesException | WrongUserForAccount e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/transfer-history/{accountId}")
     public ResponseEntity<?> getAllTransfersForAccount(@PathVariable("accountId") String accountId) {
-        List<Transfer> transfers = accountService.getAllTransfersByAccount(accountId);
+        try {
+            List<Transfer> transfers = accountService.getAllTransfersByAccount(accountId);
 
-        return ResponseEntity.ok(transfers);
+            return ResponseEntity.ok(transfers);
+        } catch (WrongUserForAccount e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
